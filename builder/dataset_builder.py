@@ -38,6 +38,7 @@ from ds_part2 import REASONING_DATA_2
 from ds_part3 import PLANNING_DATA, WORKFLOW_DATA
 from ds_part4 import REFLECTION_DATA, MEMORY_DATA, STYLE_DATA
 from ds_part5 import EXTRA_DATA
+from ds_part6 import EXTRA_DATA_2
 
 setup_encoding()
 logger = get_logger("nexus.dataset_builder")
@@ -51,7 +52,7 @@ ALL_WORKFLOW   = WORKFLOW_DATA
 ALL_REFLECTION = REFLECTION_DATA
 ALL_MEMORY     = MEMORY_DATA
 ALL_STYLE      = STYLE_DATA
-ALL_EXTRA      = EXTRA_DATA
+ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2
 
 
 def build_all():

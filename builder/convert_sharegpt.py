@@ -124,7 +124,7 @@ def main():
         (DS / "reflection"   / "reflection.jsonl",         "reflection"),
         (DS / "memory"       / "memory.jsonl",             "memory"),
         (DS / "style"        / "style.jsonl",              "style"),
-        (DS / "extra"        / "extra.jsonl",              "extra"),
+        (DS / "extra"        / "extra.jsonl",              "extra"),       # ds_part5 + ds_part6
         (DS / "tool_metadata"/ "tool_metadata.jsonl",      "tools"),
         (DS / "final_merged" / "final_merged.jsonl",       "final_merged"),
     ]
