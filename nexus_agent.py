@@ -20,6 +20,11 @@ import urllib.parse
 from pathlib import Path
 from typing import Optional
 
+# Tambah project root ke sys.path agar runtime/ bisa di-import
+_ROOT = Path(__file__).parent
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
+
 # ── Rich UI ───────────────────────────────────────────────────────────────────
 try:
     from rich.console import Console
@@ -104,13 +109,17 @@ BROWSER_SHORTCUTS = {
 
 
 class NEXUSAgent:
-    def __init__(self, model_path: str = DEFAULT_MODEL, dry_run: bool = False):
+    def __init__(self, model_path: str = DEFAULT_MODEL, dry_run: bool = False,
+                 dashboard: bool = True):
         self.model_path = model_path
         self.dry_run    = dry_run
         self.model      = None
         self.tokenizer  = None
         self.history    = []
+        self._dashboard = None
         self._print_banner()
+        if dashboard:
+            self._start_dashboard()
         self._load_model()
 
     def _print_banner(self):
@@ -119,6 +128,26 @@ class NEXUSAgent:
             console.print(Rule(style="green"))
         else:
             print(BANNER)
+
+    def _start_dashboard(self):
+        """Launch SOC dashboard di browser."""
+        try:
+            from runtime.dashboard_launcher import dashboard
+            ok = dashboard.start(port=8080, open_browser=True)
+            if ok:
+                cprint(f"  [bold cyan]🖥️  SOC Dashboard → http://localhost:8080[/]")
+            self._dashboard = dashboard
+        except Exception as e:
+            cprint(f"  [dim]ℹ️  Dashboard tidak tersedia: {e}[/]")
+            self._dashboard = None
+
+    def _push_to_dashboard(self, record: dict):
+        """Push execution record ke dashboard log."""
+        try:
+            from shared.utils import append_jsonl, root
+            append_jsonl(root("logs", "runtime", "executions.jsonl"), record)
+        except Exception:
+            pass
 
     def _load_model(self):
         if HAS_RICH:
@@ -384,6 +413,7 @@ class NEXUSAgent:
                 cprint("      [green]⚡ Executing di WSL Kali...[/]")
                 result = self.execute_wsl(cmd)
                 executions.append(result)
+                self._push_to_dashboard({**result, "tool": cmd.split()[0]})
                 self._show_result(result)
             else:
                 cprint(f"      [yellow]⚠️  {reason}[/]")
@@ -395,6 +425,7 @@ class NEXUSAgent:
                 if confirm:
                     result = self.execute_wsl(cmd)
                     executions.append(result)
+                    self._push_to_dashboard({**result, "tool": cmd.split()[0]})
                     self._show_result(result)
                 else:
                     cprint("      [dim]⏭️  Skipped[/]")
@@ -523,9 +554,10 @@ class NEXUSAgent:
 
 def main():
     parser = argparse.ArgumentParser(description="NEXUS Autonomous Security Agent")
-    parser.add_argument("--model",   default=DEFAULT_MODEL, help="Path ke LoRA adapter")
-    parser.add_argument("--task",    default=None,          help="Single task mode")
-    parser.add_argument("--dry-run", action="store_true",   help="No execution, parse only")
+    parser.add_argument("--model",        default=DEFAULT_MODEL, help="Path ke LoRA adapter")
+    parser.add_argument("--task",         default=None,          help="Single task mode")
+    parser.add_argument("--dry-run",      action="store_true",   help="No execution, parse only")
+    parser.add_argument("--no-dashboard", action="store_true",   help="Skip SOC dashboard")
     args = parser.parse_args()
 
     # Install rich jika belum ada
@@ -534,7 +566,11 @@ def main():
         subprocess.run([sys.executable, "-m", "pip", "install", "rich", "-q"])
         print("  Restart script untuk aktifkan rich UI.")
 
-    agent = NEXUSAgent(model_path=args.model, dry_run=args.dry_run)
+    agent = NEXUSAgent(
+        model_path=args.model,
+        dry_run=args.dry_run,
+        dashboard=not args.no_dashboard,
+    )
 
     if args.task:
         result = agent.run_task(args.task, auto_execute=not args.dry_run)
