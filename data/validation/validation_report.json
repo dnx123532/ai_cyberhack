@@ -1,0 +1,18 @@
+{
+  "stats": {
+    "total_lines": 312,
+    "unique_entries": 312,
+    "valid_entries": 312,
+    "token_min": 127,
+    "token_max": 447,
+    "token_mean": 332,
+    "invalid_json": 0,
+    "missing_fields": 0,
+    "duplicates": 0,
+    "too_short": 0,
+    "exceeds_tokens": 0
+  },
+  "errors": [],
+  "warnings": [],
+  "is_valid": true
+}

@@ -1,6 +1,6 @@
 """
-NEXUS — Dataset Builder v3
-Orchestrates semua 6 dataset training JSONL dari part files.
+NEXUS — Dataset Builder v4
+Orchestrates semua 7 dataset training JSONL dari part files.
 
 Part files:
   ds_part1.py  → REASONING_DATA     (100 entries, recon/scan/web/exploit/post_exploit)
@@ -10,6 +10,7 @@ Part files:
   ds_part4.py  → REFLECTION_DATA    (~40 entries)
                → MEMORY_DATA        (~35 entries)
                → STYLE_DATA         (~15 entries)
+  ds_part5.py  → EXTRA_DATA         (~63 entries, all 15 categories coverage)
 
 Output:
   datasets/reasoning/reasoning.jsonl
@@ -18,6 +19,7 @@ Output:
   datasets/reflection/reflection.jsonl
   datasets/memory/memory.jsonl
   datasets/style/style.jsonl
+  datasets/extra/extra.jsonl
 """
 
 import sys
@@ -35,6 +37,7 @@ from ds_part1 import REASONING_DATA
 from ds_part2 import REASONING_DATA_2
 from ds_part3 import PLANNING_DATA, WORKFLOW_DATA
 from ds_part4 import REFLECTION_DATA, MEMORY_DATA, STYLE_DATA
+from ds_part5 import EXTRA_DATA
 
 setup_encoding()
 logger = get_logger("nexus.dataset_builder")
@@ -48,6 +51,7 @@ ALL_WORKFLOW   = WORKFLOW_DATA
 ALL_REFLECTION = REFLECTION_DATA
 ALL_MEMORY     = MEMORY_DATA
 ALL_STYLE      = STYLE_DATA
+ALL_EXTRA      = EXTRA_DATA
 
 
 def build_all():
@@ -62,6 +66,7 @@ def build_all():
         "reflection": (ALL_REFLECTION, DS / "reflection" / "reflection.jsonl"),
         "memory"    : (ALL_MEMORY,     DS / "memory"     / "memory.jsonl"),
         "style"     : (ALL_STYLE,      DS / "style"      / "style.jsonl"),
+        "extra"     : (ALL_EXTRA,      DS / "extra"      / "extra.jsonl"),
     }
 
     totals = {}
