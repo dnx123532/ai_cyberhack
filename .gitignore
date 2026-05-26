@@ -1,0 +1,35 @@
+# ── Model weights ─────────────────────────────────────────────────────────────
+models/
+checkpoints/
+*.bin
+*.safetensors
+*.pt
+*.gguf
+
+# ── Raw datasets (3GB) ────────────────────────────────────────────────────────
+data/raw_datasets/
+dataraw/
+
+# ── Logs & cache ──────────────────────────────────────────────────────────────
+logs/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.log
+
+# ── Vector DB / memory ────────────────────────────────────────────────────────
+chromadb/
+memory/vector_db/
+*.index
+*.faiss
+
+# ── Analyzer output (generated, bukan source) ────────────────────────────────
+analyzer/output/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+*.tmp
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db

@@ -1,0 +1,348 @@
+[
+  {
+    "tool": "wifite2",
+    "category": "wireless",
+    "purpose": "monitoring",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "Pwnagotchi",
+    "category": "wireless",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "dirsearch",
+    "category": "web",
+    "purpose": "fuzzing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "hcxtools",
+    "category": "wireless",
+    "purpose": "output parsing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "Arjun",
+    "category": "web",
+    "purpose": "output parsing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "bettercap",
+    "category": "wireless",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": [
+      "wireshark",
+      "tcpdump",
+      "metasploit"
+    ]
+  },
+  {
+    "tool": "sqlmap",
+    "category": "web",
+    "purpose": "output parsing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": [
+      "metasploit"
+    ]
+  },
+  {
+    "tool": "XSStrike",
+    "category": "web",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "PayloadsAllTheThings",
+    "category": "web",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "SocialFish",
+    "category": "social",
+    "purpose": "network/port scanning",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "AutoRecon",
+    "category": "scan",
+    "purpose": "network/port scanning",
+    "workflow_stage": "scan",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "Legion",
+    "category": "scan",
+    "purpose": "security utility",
+    "workflow_stage": "scan",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "Sublist3r",
+    "category": "recon",
+    "purpose": "enumeration",
+    "workflow_stage": "recon",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "Photon",
+    "category": "recon",
+    "purpose": "network/port scanning",
+    "workflow_stage": "recon",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "theHarvester",
+    "category": "recon",
+    "purpose": "output parsing",
+    "workflow_stage": "recon",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "recon-ng",
+    "category": "recon",
+    "purpose": "output parsing",
+    "workflow_stage": "recon",
+    "risk": "low",
+    "chained_with": [
+      "subfinder",
+      "theHarvester",
+      "shodan"
+    ]
+  },
+  {
+    "tool": "CrackMapExec",
+    "category": "post_exploit",
+    "purpose": "security utility",
+    "workflow_stage": "post_exploit",
+    "risk": "critical",
+    "chained_with": [
+      "mimikatz",
+      "bloodhound",
+      "evil-winrm"
+    ]
+  },
+  {
+    "tool": "LinPEAS",
+    "category": "post_exploit",
+    "purpose": "output parsing",
+    "workflow_stage": "post_exploit",
+    "risk": "critical",
+    "chained_with": []
+  },
+  {
+    "tool": "CAPEv2",
+    "category": "malware",
+    "purpose": "output parsing",
+    "workflow_stage": "analysis",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "maltrail",
+    "category": "malware",
+    "purpose": "enumeration",
+    "workflow_stage": "analysis",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "yarGen",
+    "category": "malware",
+    "purpose": "network/port scanning",
+    "workflow_stage": "analysis",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "RouterSploit",
+    "category": "iot",
+    "purpose": "exploitation",
+    "workflow_stage": "attack",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "FACT_core",
+    "category": "iot",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "medium",
+    "chained_with": []
+  },
+  {
+    "tool": "autopsy",
+    "category": "forensics",
+    "purpose": "security utility",
+    "workflow_stage": "analysis",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "volatility3",
+    "category": "forensics",
+    "purpose": "security utility",
+    "workflow_stage": "analysis",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "LogonTracer",
+    "category": "forensics",
+    "purpose": "output parsing",
+    "workflow_stage": "analysis",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "impacket",
+    "category": "exploit",
+    "purpose": "security utility",
+    "workflow_stage": "exploit",
+    "risk": "critical",
+    "chained_with": [
+      "bloodhound",
+      "mimikatz",
+      "crackmapexec"
+    ]
+  },
+  {
+    "tool": "pwntools",
+    "category": "exploit",
+    "purpose": "security utility",
+    "workflow_stage": "exploit",
+    "risk": "critical",
+    "chained_with": [
+      "metasploit"
+    ]
+  },
+  {
+    "tool": "Veil",
+    "category": "evasion",
+    "purpose": "security utility",
+    "workflow_stage": "exploit",
+    "risk": "critical",
+    "chained_with": []
+  },
+  {
+    "tool": "charlotte",
+    "category": "evasion",
+    "purpose": "security utility",
+    "workflow_stage": "exploit",
+    "risk": "critical",
+    "chained_with": []
+  },
+  {
+    "tool": "Zeek",
+    "category": "defense",
+    "purpose": "security utility",
+    "workflow_stage": "monitor",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "Wazuh",
+    "category": "defense",
+    "purpose": "enumeration",
+    "workflow_stage": "monitor",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "hashID",
+    "category": "crypto",
+    "purpose": "output parsing",
+    "workflow_stage": "analysis",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "RsaCtfTool",
+    "category": "crypto",
+    "purpose": "security utility",
+    "workflow_stage": "analysis",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "sigma",
+    "category": "defense",
+    "purpose": "output parsing",
+    "workflow_stage": "monitor",
+    "risk": "low",
+    "chained_with": []
+  },
+  {
+    "tool": "Prowler",
+    "category": "cloud",
+    "purpose": "security utility",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": [
+      "pacu",
+      "scout"
+    ]
+  },
+  {
+    "tool": "Pacu",
+    "category": "cloud",
+    "purpose": "output parsing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": [
+      "aws",
+      "trufflehog"
+    ]
+  },
+  {
+    "tool": "ScoutSuite",
+    "category": "cloud",
+    "purpose": "reporting",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "crowbar",
+    "category": "brute_force",
+    "purpose": "output parsing",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  },
+  {
+    "tool": "patator",
+    "category": "brute_force",
+    "purpose": "async automation",
+    "workflow_stage": "attack",
+    "risk": "high",
+    "chained_with": []
+  }
+]
