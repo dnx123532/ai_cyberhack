@@ -51,7 +51,7 @@ def cprint(msg, style=""):
 # ── Config ────────────────────────────────────────────────────────────────────
 DEFAULT_MODEL = str(Path(__file__).parent / "models" / "lora_adapter")
 DRIVE_MODEL   = "/content/drive/MyDrive/nexus-agent/models/lora_adapter"
-WSL           = ["wsl", "-d", "kali-linux", "-u", "root", "--"]
+WSL           = ["C:\\Windows\\System32\\wsl.exe", "-d", "kali-linux", "-u", "root", "--"]
 MAX_TOKENS    = 512
 TEMPERATURE   = 0.3
 REP_PENALTY   = 1.3
