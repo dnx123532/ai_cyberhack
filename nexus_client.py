@@ -75,6 +75,36 @@ CONFIRM_TOOLS = {
 
 console = Console()
 
+# ─── Tool Registry ────────────────────────────────────────────────────────────
+TOOL_REGISTRY_FILE = ROOT / "tool_registry" / "registry.json"
+
+def load_tool_registry() -> str:
+    """Load tool registry dan format untuk system prompt NEXUS."""
+    try:
+        with open(TOOL_REGISTRY_FILE) as f:
+            tools = json.load(f)
+        lines = ["=== TOOLS LOKAL TERSEDIA (gunakan path/exec ini) ==="]
+        cats = {}
+        for t in tools:
+            cat = t.get("category", "misc")
+            cats.setdefault(cat, []).append(t)
+        for cat, items in sorted(cats.items()):
+            lines.append(f"\n[{cat.upper()}]")
+            for t in items:
+                name = t.get("tool", "?")
+                exc  = t.get("exec", name)
+                usage = t.get("usage", "--help")
+                lines.append(f"  {name}: {exc} {usage}")
+        lines.append("\n=== CARA EKSEKUSI ===")
+        lines.append("- Tool Python: python3 /path/to/tool.py [args]")
+        lines.append("- Tool WSL: nmap, sqlmap, hydra, hashcat, dll langsung")
+        lines.append("- Selalu kasih command dalam ```bash block")
+        return "\n".join(lines)
+    except Exception:
+        return ""
+
+TOOL_CONTEXT = load_tool_registry()
+
 # ─── Config ───────────────────────────────────────────────────────────────────
 DEFAULT_CONFIG = {
     "api_url": "",
@@ -113,9 +143,8 @@ class NexusAPI:
         """Test connectivity to Colab API."""
         try:
             t0 = time.time()
-            r = requests.post(
-                f"{self.base_url}/ask",
-                json={"prompt": "ping", "context": []},
+            r = requests.get(
+                f"{self.base_url}/health",
                 timeout=10,
             )
             self.latency_ms = int((time.time() - t0) * 1000)
@@ -129,8 +158,8 @@ class NexusAPI:
         try:
             r = requests.post(
                 f"{self.base_url}/ask",
-                json={"prompt": prompt, "context": context},
-                timeout=60,
+                json={"prompt": prompt, "context": context, "tools": TOOL_CONTEXT},
+                timeout=120,
             )
             if r.status_code == 200:
                 data = r.json()
