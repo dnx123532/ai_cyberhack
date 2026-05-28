@@ -10,8 +10,8 @@
   {
     "tool": "theHarvester",
     "category": "recon",
-    "path": "E:\\agent_cyberhack\\data\\raw_datasets\\tool_scripts\\recon\\theHarvester",
-    "exec": "python3 E:\\agent_cyberhack\\data\\raw_datasets\\tool_scripts\\recon\\theHarvester\\theHarvester.py",
+    "path": "E:/agent_cyberhack/data/raw_datasets/tool_scripts/recon/theHarvester/theHarvester",
+    "exec": "python3 E:/agent_cyberhack/data/raw_datasets/tool_scripts/recon/theHarvester/theHarvester/theHarvester.py",
     "usage": "-d {domain} -b all -l 500",
     "available": true
   },
