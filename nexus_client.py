@@ -54,23 +54,58 @@ WSL_EXE    = r"C:\Windows\System32\wsl.exe"
 WSL_DISTRO = "kali-linux"
 
 SAFE_TOOLS = {
-    "nmap", "subfinder", "amass", "httpx", "dnsx", "nikto", "gobuster",
-    "ffuf", "whatweb", "wpscan", "nuclei", "hydra", "hashcat", "john",
-    "medusa", "masscan", "rustscan", "theHarvester", "recon-ng", "shodan",
-    "aircrack-ng", "airodump-ng", "aireplay-ng", "airmon-ng", "kismet",
-    "wifite", "prowler", "scoutsuite", "volatility3", "vol.py", "autopsy",
-    "strings", "binwalk", "ghidra", "cuckoo", "gophish", "bloodhound-python",
-    "impacket-GetUserSPNs", "kerbrute", "cat", "ls", "grep", "find",
+    # Network recon
+    "nmap", "masscan", "rustscan", "zmap", "unicornscan",
+    "subfinder", "amass", "dnsx", "httpx", "httprobe",
+    "nikto", "gobuster", "ffuf", "feroxbuster", "dirsearch",
+    "whatweb", "wpscan", "nuclei", "wapiti", "skipfish",
+    "theHarvester", "recon-ng", "shodan", "censys", "maltego",
+    "dnsenum", "dnsrecon", "fierce", "sublist3r", "assetfinder",
+    "waybackurls", "gau", "katana", "hakrawler", "gospider",
+    "gowitness", "aquatone", "eyewitness",
+    # Web tools
+    "sqlmap", "xsstrike", "dalfox", "arjun", "wfuzz",
+    "burpsuite", "zaproxy",
+    # Exploitation / Post
+    "hydra", "hashcat", "john", "medusa", "kerbrute",
+    "crackmapexec", "cme", "bloodhound-python",
+    "impacket-GetUserSPNs", "impacket-secretsdump",
+    "impacket-psexec", "impacket-wmiexec", "impacket-smbclient",
+    "evil-winrm", "netexec",
+    # Recon extras
+    "subfinder", "amass", "assetfinder", "findomain",
+    "waybackurls", "waybackhack", "gau", "gauplus", "katana",
+    "hakrawler", "gospider", "photon", "sublist3r",
+    "sherlock", "crosslinked", "holehe", "maigret",
+    "httpx", "httprobe", "dnsx", "massdns",
+    # Wireless
+    "aircrack-ng", "airodump-ng", "aireplay-ng", "airmon-ng",
+    "kismet", "wifite", "hcxpcapngtool", "hcxdumptool",
+    # Cloud
+    "prowler", "scoutsuite", "pacu", "cloudsploit",
+    # Forensics / Defense
+    "volatility3", "vol.py", "autopsy", "strings", "binwalk",
+    "yara", "zeek", "sigma", "suricata", "snort",
+    "tshark", "wireshark", "tcpdump", "chainsaw",
+    # Malware
+    "ghidra", "cuckoo", "gophish", "maltrail",
+    # System utils
+    "python3", "python", "python2",
+    "bash", "sh", "zsh",
+    "cat", "ls", "grep", "find", "awk", "sed", "sort", "uniq",
     "curl", "wget", "ping", "whois", "dig", "host", "nslookup",
-    "hcxpcapngtool", "tshark", "wireshark", "sqlite3", "python3",
-    "pip", "apt-get", "git", "suricata", "yara", "zeek", "sigma",
+    "ssh", "scp", "nc", "netcat", "ncat",
+    "sqlite3", "pip", "pip3", "apt", "apt-get", "git",
+    "tar", "unzip", "zip", "gunzip", "gzip",
+    "chmod", "chown", "mkdir", "rm", "cp", "mv",
+    "echo", "printf", "tee", "head", "tail", "wc",
+    "ps", "top", "kill", "pkill", "id", "whoami", "uname",
+    "ifconfig", "ip", "route", "iptables", "ss", "netstat",
 }
 
 CONFIRM_TOOLS = {
-    "msfconsole", "metasploit", "mimikatz", "crackmapexec",
-    "evilginx2", "setoolkit", "routersploit", "impacket-secretsdump",
-    "impacket-psexec", "impacket-wmiexec", "evil-winrm",
-    "sqlmap",   # allowed but confirm when --dump/--os-shell
+    "msfconsole", "metasploit", "mimikatz",
+    "evilginx2", "setoolkit", "routersploit",
 }
 
 console = Console()
@@ -78,12 +113,20 @@ console = Console()
 # ─── Tool Registry ────────────────────────────────────────────────────────────
 TOOL_REGISTRY_FILE = ROOT / "tool_registry" / "registry.json"
 
+def win_path_to_wsl(path: str) -> str:
+    """Convert E:\foo\bar → /mnt/e/foo/bar"""
+    import re as _re
+    def _conv(m):
+        return f"/mnt/{m.group(1).lower()}/{m.group(2).replace(chr(92), '/')}"
+    return _re.sub(r"([A-Za-z]):\\([\w\\.\-/]+)", _conv, path)
+
+
 def load_tool_registry() -> str:
-    """Load tool registry dan format untuk system prompt NEXUS."""
+    """Load tool registry dan format WSL paths untuk system prompt NEXUS."""
     try:
         with open(TOOL_REGISTRY_FILE) as f:
             tools = json.load(f)
-        lines = ["=== TOOLS LOKAL TERSEDIA (gunakan path/exec ini) ==="]
+        lines = ["=== TOOLS LOKAL (GUNAKAN PATH INI — JANGAN UBAH) ==="]
         cats = {}
         for t in tools:
             cat = t.get("category", "misc")
@@ -91,14 +134,15 @@ def load_tool_registry() -> str:
         for cat, items in sorted(cats.items()):
             lines.append(f"\n[{cat.upper()}]")
             for t in items:
-                name = t.get("tool", "?")
-                exc  = t.get("exec", name)
+                name  = t.get("tool", "?")
+                exc   = win_path_to_wsl(t.get("exec", name))
                 usage = t.get("usage", "--help")
                 lines.append(f"  {name}: {exc} {usage}")
-        lines.append("\n=== CARA EKSEKUSI ===")
-        lines.append("- Tool Python: python3 /path/to/tool.py [args]")
-        lines.append("- Tool WSL: nmap, sqlmap, hydra, hashcat, dll langsung")
-        lines.append("- Selalu kasih command dalam ```bash block")
+        lines.append("\n=== RULES ===")
+        lines.append("- SELALU gunakan path di atas untuk tools lokal")
+        lines.append("- Jangan gunakan Windows path (E:\\...), gunakan /mnt/e/...")
+        lines.append("- Kasih command dalam ```bash block")
+        lines.append("- Tools system (nmap, gobuster, ffuf) langsung tanpa path")
         return "\n".join(lines)
     except Exception:
         return ""
@@ -193,10 +237,22 @@ class WSLExecutor:
         try:
             r = subprocess.run(
                 [WSL_EXE, "--list", "--quiet"],
-                capture_output=True, text=True, timeout=5,
+                capture_output=True, timeout=5,
                 creationflags=subprocess.CREATE_NO_WINDOW,
             )
-            return self.distro.lower() in r.stdout.lower()
+            # Decode UTF-16 LE (Windows WSL output) + strip null bytes
+            try:
+                out = r.stdout.decode("utf-16-le", errors="ignore")
+            except Exception:
+                out = r.stdout.decode("utf-8", errors="ignore")
+            # Remove spaces between chars (WSL --list quirk)
+            out_clean = out.replace("\x00", "").replace(" ", "").lower()
+            distro_clean = self.distro.replace(" ", "").replace("-", "").lower()
+            return (
+                self.distro.lower().replace(" ", "") in out_clean
+                or distro_clean in out_clean
+                or "kali" in out_clean
+            )
         except Exception:
             return False
 
@@ -247,6 +303,18 @@ class WSLExecutor:
         if tool == "sqlmap" and any(f in cmd for f in dangerous_flags):
             return True, True
 
+        # Allow semua python3 calls ke local repo paths
+        if tool in ("python3", "python") and "/mnt/e/agent_cyberhack/" in cmd:
+            return True, False
+
+        # Allow bash/sh scripts dari local repo
+        if tool in ("bash", "sh") and "/mnt/e/agent_cyberhack/" in cmd:
+            return True, False
+
+        # Allow cat >> (forge file creation)
+        if tool == "cat" and ">>" in cmd:
+            return True, False
+
         if tool in SAFE_TOOLS:
             return True, False
         if tool in CONFIRM_TOOLS:
@@ -254,27 +322,119 @@ class WSLExecutor:
         # sudo + safe tool is ok
         if tool == "sudo" and len(tokens) > 1 and tokens[1] in SAFE_TOOLS:
             return True, False
+        # python3/bash general — confirm dulu
+        if tool in ("python3", "python", "bash", "sh"):
+            return True, True
         return False, False
+
+
+# ─── Command starters ─────────────────────────────────────────────────────────
+_CMD_STARTERS = (
+    "nmap","masscan","rustscan","subfinder","amass","dnsx","httpx",
+    "nikto","gobuster","ffuf","feroxbuster","dirsearch","nuclei","whatweb",
+    "wpscan","sqlmap","xsstrike","dalfox","arjun","wfuzz","hydra","hashcat",
+    "john","medusa","Medusa","patator","crackmapexec","cme","bloodhound","impacket","kerbrute",
+    "aircrack","airodump","aireplay","airmon","wifite","hcxpcapngtool",
+    "prowler","pacu","volatility","vol.py","yara","zeek","sigma","chainsaw",
+    "python3","python","python2","bash","sh","perl","ruby","node",
+    "curl","wget","nc","netcat","ncat","ssh","scp",
+    "cat","ls","grep","find","awk","sed","sort","uniq","echo","printf",
+    "chmod","mkdir","cp","mv","rm","tar","unzip","zip","git","pip","pip3",
+    "apt","apt-get","sudo","tee","head","tail","wc","ps","kill",
+)
+
+def _is_new_cmd(line: str) -> bool:
+    """True jika baris ini adalah awal command baru (bukan lanjutan)."""
+    if not line.split():
+        return False
+    first = line.split()[0].lstrip("./")
+    # Handle /mnt/e/.../tool.py — ambil nama file saja
+    if "/" in first:
+        first = first.split("/")[-1]
+    # Handle python3 /path/to/tool.py — cek arg pertama juga
+    first_lower = first.lower().replace(".py", "").replace(".sh", "")
+    # Kalau dimulai dengan python3/bash + path = new command
+    if first_lower in ("python3", "python", "bash", "sh", "perl", "ruby"):
+        return True
+    return any(first_lower == s or first_lower.startswith(s) for s in _CMD_STARTERS)
+
+# ─── Path Normalizer ──────────────────────────────────────────────────────────
+def normalize_wsl_path(cmd: str) -> str:
+    """Convert Windows backslash paths ke WSL paths. Jangan sentuh URLs."""
+    def win_to_wsl(m):
+        drive = m.group(1).lower()
+        rest  = m.group(2).replace("\\", "/")
+        return f"/mnt/{drive}/{rest}"
+    # Hanya convert Windows path dengan backslash: E:\foo\bar
+    cmd = re.sub(r"(?<![:/])([A-Za-z]):\\([\w\\./\-]+)", win_to_wsl, cmd)
+    return cmd
 
 
 # ─── Command Parser ────────────────────────────────────────────────────────────
 def parse_commands(text: str) -> list[str]:
-    """Extract bash commands from NEXUS response."""
+    """Extract bash commands dari NEXUS response."""
     cmds = []
 
-    # ```bash ... ``` or ```shell ... ```
     for block in re.findall(r"```(?:bash|shell|sh|console)?\n(.*?)```", text, re.DOTALL):
-        for line in block.split("\n"):
-            line = line.strip()
-            if line and not line.startswith("#"):
-                cmds.append(line)
+        # Join explicit line continuations (\)
+        block = re.sub(r"\\\n\s*", " ", block)
+        lines = [l.strip() for l in block.split("\n")]
 
-    # $ cmd lines (if no bash blocks found)
+        # Detect kalau ada multi-line construct (while/for/if/do/case)
+        MULTILINE_KEYWORDS = ("while ", "for ", "if ", "case ", "until ", "function ")
+        block_has_multiline = any(
+            any(l.startswith(kw) for kw in MULTILINE_KEYWORDS)
+            for l in lines if l and not l.startswith("#")
+        )
+
+        if block_has_multiline:
+            # Treat seluruh block sebagai satu command
+            clean_lines = []
+            skip_heredoc = False
+            for l in lines:
+                if skip_heredoc:
+                    if l.strip() in ("PYEOF","EOF","END","'PYEOF'","'EOF'"):
+                        skip_heredoc = False
+                    continue
+                if "<<" in l and ("EOF" in l or "PYEOF" in l):
+                    skip_heredoc = True
+                    continue
+                if l and not l.startswith("#"):
+                    clean_lines.append(l)
+            if clean_lines:
+                full_cmd = "; ".join(clean_lines)
+                cmds.append(normalize_wsl_path(full_cmd))
+            continue
+
+        current = ""
+        skip_heredoc = False
+        for line in lines:
+            if skip_heredoc:
+                if line.strip() in ("PYEOF","EOF","END","'PYEOF'","'EOF'"):
+                    skip_heredoc = False
+                continue
+            if not line or line.startswith("#"):
+                continue
+            if "<<" in line and ("EOF" in line or "PYEOF" in line or "END" in line):
+                skip_heredoc = True
+                continue
+            if current and _is_new_cmd(line):
+                cmds.append(normalize_wsl_path(current.strip()))
+                current = line
+            elif current:
+                current += " " + line
+            else:
+                current = line
+
+        if current:
+            cmds.append(normalize_wsl_path(current.strip()))
+
+    # $ cmd lines fallback
     if not cmds:
         for line in text.split("\n"):
             m = re.match(r"^\$\s+(.+)", line.strip())
             if m:
-                cmds.append(m.group(1).strip())
+                cmds.append(normalize_wsl_path(m.group(1).strip()))
 
     return cmds
 
@@ -606,6 +766,31 @@ class NexusAgent:
 
     # ── Execute commands from response ────────────────────────────────────────
 
+    def _fix_cmd(self, cmd: str) -> str:
+        """Auto-fix known wrong paths sebelum execute."""
+        # theHarvester → selalu pakai system tool (lebih reliable)
+        if "theHarvester" in cmd and "/mnt/e/" in cmd:
+            args = cmd.split(".py", 1)[-1].strip() if ".py" in cmd else ""
+            cmd = f"theHarvester {args}".strip()
+            return cmd
+
+        # sqlmap → pakai path lokal yang benar
+        if "sqlmap" in cmd and "/mnt/e/" in cmd:
+            correct = "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/sqlmap/sqlmap.py"
+            cmd = re.sub(r"/mnt/e/[^\s]*/sqlmap\.py", correct, cmd)
+
+        # dirsearch → pakai path lokal yang benar
+        if "dirsearch" in cmd and "/mnt/e/" in cmd:
+            correct = "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/dirsearch/dirsearch.py"
+            cmd = re.sub(r"/mnt/e/[^\s]*/dirsearch\.py", correct, cmd)
+
+        # Sublist3r → path lokal yang benar
+        if "sublist3r" in cmd.lower() and "/mnt/e/" in cmd:
+            correct = "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/recon/Sublist3r/sublist3r.py"
+            cmd = re.sub(r"/mnt/e/[^\s]*/sublist3r\.py", correct, cmd, flags=re.IGNORECASE)
+
+        return cmd
+
     def _execute_response_cmds(self, response: str):
         cmds = parse_commands(response)
         if not cmds:
@@ -621,6 +806,7 @@ class NexusAgent:
                 return
 
         for cmd in cmds:
+            cmd = self._fix_cmd(cmd)
             allowed, needs_confirm = self.wsl.is_safe(cmd)
             if not allowed:
                 console.print(f"[yellow]⚠ Skipped (not in whitelist):[/] {cmd}")
@@ -632,8 +818,14 @@ class NexusAgent:
             t0 = time.time()
 
             def show(line, _cmd=cmd):
-                console.print(f"  {line}")
-                DASHBOARD.add_output(line)
+                try:
+                    # Strip ANSI escape codes buat Rich safety
+                    clean = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', line)
+                    clean = re.sub(r'\x1b\[\?[0-9]+[hl]', '', clean)
+                    print(f"  {clean}", flush=True)
+                    DASHBOARD.add_output(clean)
+                except Exception:
+                    pass
 
             rc, output = self.wsl.run(cmd, on_line=show, timeout=300)
             dur = time.time() - t0
