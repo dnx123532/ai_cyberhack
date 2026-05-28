@@ -65,6 +65,11 @@ try:
 except ImportError:
     EXTRA_DATA_6 = []
 
+try:
+    from ds_part11 import EXTRA_DATA_7
+except ImportError:
+    EXTRA_DATA_7 = []
+
 setup_encoding()
 logger = get_logger("nexus.dataset_builder")
 
@@ -77,7 +82,7 @@ ALL_WORKFLOW   = WORKFLOW_DATA
 ALL_REFLECTION = REFLECTION_DATA
 ALL_MEMORY     = MEMORY_DATA
 ALL_STYLE      = STYLE_DATA
-ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4 + EXTRA_DATA_5 + EXTRA_DATA_6
+ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4 + EXTRA_DATA_5 + EXTRA_DATA_6 + EXTRA_DATA_7
 ALL_TOOLS_EXEC = TOOLS_EXEC_DATA
 
 
