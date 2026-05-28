@@ -14,6 +14,7 @@ Part files:
   ds_part6.py  → EXTRA_DATA_2       (~45 entries, corrected syntax)
   ds_part7.py  → EXTRA_DATA_3       (~52 entries, all 15 categories + personality)
   ds_part8.py  → EXTRA_DATA_4       (~400 entries, 1500 target push)
+  ds_part9.py  → EXTRA_DATA_5       (~60 entries, recon+scan deep)
 
 Output:
   datasets/reasoning/reasoning.jsonl
@@ -44,11 +45,15 @@ from ds_part5 import EXTRA_DATA
 from ds_part6 import EXTRA_DATA_2
 from ds_part7 import EXTRA_DATA_3
 
-# ds_part8 optional — skip kalau belum ada
 try:
     from ds_part8 import EXTRA_DATA_4
 except ImportError:
     EXTRA_DATA_4 = []
+
+try:
+    from ds_part9 import EXTRA_DATA_5
+except ImportError:
+    EXTRA_DATA_5 = []
 
 setup_encoding()
 logger = get_logger("nexus.dataset_builder")
@@ -62,7 +67,7 @@ ALL_WORKFLOW   = WORKFLOW_DATA
 ALL_REFLECTION = REFLECTION_DATA
 ALL_MEMORY     = MEMORY_DATA
 ALL_STYLE      = STYLE_DATA
-ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4
+ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4 + EXTRA_DATA_5
 
 
 def build_all():
