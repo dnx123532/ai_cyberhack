@@ -55,6 +55,16 @@ try:
 except ImportError:
     EXTRA_DATA_5 = []
 
+try:
+    from ds_tools_exec import TOOLS_EXEC_DATA
+except ImportError:
+    TOOLS_EXEC_DATA = []
+
+try:
+    from ds_part10 import EXTRA_DATA_6
+except ImportError:
+    EXTRA_DATA_6 = []
+
 setup_encoding()
 logger = get_logger("nexus.dataset_builder")
 
@@ -67,7 +77,8 @@ ALL_WORKFLOW   = WORKFLOW_DATA
 ALL_REFLECTION = REFLECTION_DATA
 ALL_MEMORY     = MEMORY_DATA
 ALL_STYLE      = STYLE_DATA
-ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4 + EXTRA_DATA_5
+ALL_EXTRA      = EXTRA_DATA + EXTRA_DATA_2 + EXTRA_DATA_3 + EXTRA_DATA_4 + EXTRA_DATA_5 + EXTRA_DATA_6
+ALL_TOOLS_EXEC = TOOLS_EXEC_DATA
 
 
 def build_all():
@@ -83,6 +94,7 @@ def build_all():
         "memory"    : (ALL_MEMORY,     DS / "memory"     / "memory.jsonl"),
         "style"     : (ALL_STYLE,      DS / "style"      / "style.jsonl"),
         "extra"     : (ALL_EXTRA,      DS / "extra"      / "extra.jsonl"),
+        "tools_exec": (ALL_TOOLS_EXEC, DS / "tools_exec" / "tools_exec.jsonl"),
     }
 
     totals = {}
