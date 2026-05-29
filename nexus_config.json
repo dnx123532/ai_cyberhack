@@ -1,0 +1,8 @@
+{
+  "api_url": "https://unrest-hence-headboard.ngrok-free.dev",
+  "wsl_enabled": true,
+  "auto_execute": true,
+  "dashboard_port": 7788,
+  "max_context": 10,
+  "wsl_distro": "kali-linux"
+}
