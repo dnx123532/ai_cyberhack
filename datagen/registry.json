@@ -1,0 +1,282 @@
+[
+  {
+    "category": "brute_force",
+    "tool": "crowbar",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/brute_force/crowbar/crowbar.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/brute_force/crowbar/crowbar.py"
+  },
+  {
+    "category": "brute_force",
+    "tool": "patator",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/brute_force/patator/src/patator/patator.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/brute_force/patator/src/patator/patator.py"
+  },
+  {
+    "category": "cloud",
+    "tool": "Pacu",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/Pacu/cli.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/Pacu/cli.py"
+  },
+  {
+    "category": "cloud",
+    "tool": "Prowler",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/Prowler/prowler-cli.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/Prowler/prowler-cli.py"
+  },
+  {
+    "category": "cloud",
+    "tool": "ScoutSuite",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/ScoutSuite/scout.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/cloud/ScoutSuite/scout.py"
+  },
+  {
+    "category": "crypto",
+    "tool": "RsaCtfTool",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/crypto/RsaCtfTool/src/RsaCtfTool/main.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/crypto/RsaCtfTool/src/RsaCtfTool/main.py"
+  },
+  {
+    "category": "crypto",
+    "tool": "hashID",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/crypto/hashID/hashid.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/crypto/hashID/hashid.py"
+  },
+  {
+    "category": "defense",
+    "tool": "Wazuh",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "defense",
+    "tool": "Zeek",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "defense",
+    "tool": "sigma",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "evasion",
+    "tool": "Veil",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "evasion",
+    "tool": "charlotte",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/evasion/charlotte/charlotte.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/evasion/charlotte/charlotte.py"
+  },
+  {
+    "category": "exploit",
+    "tool": "impacket",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "exploit",
+    "tool": "pwntools",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "forensics",
+    "tool": "LogonTracer",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/forensics/LogonTracer/logontracer.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/forensics/LogonTracer/logontracer.py"
+  },
+  {
+    "category": "forensics",
+    "tool": "autopsy",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "forensics",
+    "tool": "volatility3",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/forensics/volatility3/vol.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/forensics/volatility3/vol.py"
+  },
+  {
+    "category": "iot",
+    "tool": "FACT_core",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "iot",
+    "tool": "RouterSploit",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/iot/RouterSploit/rsf.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/iot/RouterSploit/rsf.py"
+  },
+  {
+    "category": "malware",
+    "tool": "CAPEv2",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "malware",
+    "tool": "maltrail",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/malware/maltrail/sensor.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/malware/maltrail/sensor.py"
+  },
+  {
+    "category": "malware",
+    "tool": "yarGen",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/malware/yarGen/yarGen.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/malware/yarGen/yarGen.py"
+  },
+  {
+    "category": "post_exploit",
+    "tool": "CrackMapExec",
+    "type": "system",
+    "invoke": "crackmapexec",
+    "path": null
+  },
+  {
+    "category": "post_exploit",
+    "tool": "LinPEAS",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "recon",
+    "tool": "Photon",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/recon/Photon/photon.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/recon/Photon/photon.py"
+  },
+  {
+    "category": "recon",
+    "tool": "Sublist3r",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/recon/Sublist3r/sublist3r.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/recon/Sublist3r/sublist3r.py"
+  },
+  {
+    "category": "recon",
+    "tool": "recon-ng",
+    "type": "system",
+    "invoke": "recon-ng",
+    "path": null
+  },
+  {
+    "category": "recon",
+    "tool": "theHarvester",
+    "type": "system",
+    "invoke": "theHarvester",
+    "path": null
+  },
+  {
+    "category": "scan",
+    "tool": "AutoRecon",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/scan/AutoRecon/autorecon.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/scan/AutoRecon/autorecon.py"
+  },
+  {
+    "category": "scan",
+    "tool": "Legion",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "social",
+    "tool": "SocialFish",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/social/SocialFish/SocialFish.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/social/SocialFish/SocialFish.py"
+  },
+  {
+    "category": "web",
+    "tool": "Arjun",
+    "type": "system",
+    "invoke": "arjun",
+    "path": null
+  },
+  {
+    "category": "web",
+    "tool": "PayloadsAllTheThings",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "web",
+    "tool": "XSStrike",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/XSStrike/xsstrike.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/XSStrike/xsstrike.py"
+  },
+  {
+    "category": "web",
+    "tool": "dirsearch",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/dirsearch/dirsearch.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/web/dirsearch/dirsearch.py"
+  },
+  {
+    "category": "web",
+    "tool": "sqlmap",
+    "type": "system",
+    "invoke": "sqlmap",
+    "path": null
+  },
+  {
+    "category": "wireless",
+    "tool": "Pwnagotchi",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "wireless",
+    "tool": "bettercap",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "wireless",
+    "tool": "hcxtools",
+    "type": "unknown",
+    "invoke": null,
+    "path": null
+  },
+  {
+    "category": "wireless",
+    "tool": "wifite2",
+    "type": "local",
+    "invoke": "python3 /mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/wireless/wifite2/Wifite.py",
+    "path": "/mnt/e/agent_cyberhack/data/raw_datasets/tool_scripts/wireless/wifite2/Wifite.py"
+  }
+]

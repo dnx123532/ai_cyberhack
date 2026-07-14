@@ -1,11 +1,11 @@
 {
   "stats": {
-    "total_lines": 312,
-    "unique_entries": 312,
-    "valid_entries": 312,
-    "token_min": 127,
-    "token_max": 447,
-    "token_mean": 332,
+    "total_lines": 58,
+    "unique_entries": 58,
+    "valid_entries": 58,
+    "token_min": 171,
+    "token_max": 1926,
+    "token_mean": 471,
     "invalid_json": 0,
     "missing_fields": 0,
     "duplicates": 0,

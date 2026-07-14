@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "PowerShell(Get-ChildItem \"e:\\\\agent_cyberhack\\\\data\\\\raw_datasets\\\\tool_scripts\\\\\" -Recurse -Directory | Where-Object { $_.Parent.Parent.Name -eq \"tool_scripts\" -or $_.Parent.Name -eq \"tool_scripts\" } | Select-Object @{N='Category';E={$_.Parent.Name}}, Name | Sort-Object Category)",
+      "Bash(Get-ChildItem -Path \"E:\\\\agent_cyberhack\\\\builder\\\\\" -Filter \"ds_part*.py\" | Select-Object Name, Length | Sort-Object Name)",
+      "PowerShell(head -200)",
+      "Bash(mkdir -p \"C:\\\\Users\\\\userh\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\e--agent-cyberhack\\\\c74e5bee-7950-43b4-a8f4-499ffa1e9843\\\\scratchpad\")",
+      "Bash(zip -r \"C:\\\\Users\\\\userh\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\e--agent-cyberhack\\\\c74e5bee-7950-43b4-a8f4-499ffa1e9843\\\\scratchpad\\\\datasets_backup.zip\" datasets/ -q)",
+      "Bash(wsl -d kali-linux -u root -- bash -c \"echo WSL_OK && whoami && which python3 && which nmap && which theHarvester\")",
+      "Bash(wsl -d kali-linux -u root -- bash -c 'for b in zeek bettercap hcxpcapngtool hcxdumptool veil autopsy sigmac; do printf '\\\\''%-15s '\\\\'' $b; which $b 2>/dev/null || echo '\\\\''not found'\\\\''; done')",
+      "Bash(python -)"
     ]
   }
 }

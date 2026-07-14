@@ -1,0 +1,7 @@
+admin
+backup
+api
+login
+product
+search
+profile
