@@ -33,6 +33,10 @@ LOGGING_DIR   = f"{COLAB_ROOT}/logs/training"
 MODEL_DIR     = f"{COLAB_ROOT}/models/lora_adapter"
 
 MODEL_ID = "teknium/OpenHermes-2.5-Mistral-7B"
+# Kalau HF's Xet CDN lagi bermasalah (403 SignatureError dsb), clone modelnya manual
+# via `git lfs clone` lalu arahkan ke folder lokalnya lewat env var ini — from_pretrained
+# terima path lokal sama persis kayak repo ID, gak akan sentuh network sama sekali.
+MODEL_ID = os.environ.get("NEXUS_MODEL_PATH", MODEL_ID)
 # Jika VRAM < 14GB, pakai model Mistral yang lebih kecil / quantized lebih agresif
 
 # ── Imports (setelah pip install) ─────────────────────────────────────────────
