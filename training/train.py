@@ -28,7 +28,7 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, TaskType, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
 from datasets import load_dataset
-from training.monitor import NEXUSMonitorCallback
+from monitor import NEXUSMonitorCallback
 
 # ── QLoRA config ──────────────────────────────────────────────────────────────
 bnb_config = BitsAndBytesConfig(
