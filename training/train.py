@@ -1,7 +1,7 @@
 """
 NEXUS AI Agent — QLoRA Training Script
 Target: Google Colab T4 (16GB VRAM)
-Model : Qwen/Qwen2.5-7B-Instruct
+Model : teknium/OpenHermes-2.5-Mistral-7B (Apache 2.0, no usage-policy restrictions)
 Method: QLoRA 4-bit + LoRA adapter via PEFT/TRL
 """
 
@@ -20,9 +20,8 @@ OUTPUT_DIR    = f"{COLAB_ROOT}/checkpoints"
 LOGGING_DIR   = f"{COLAB_ROOT}/logs/training"
 MODEL_DIR     = f"{COLAB_ROOT}/models/lora_adapter"
 
-MODEL_ID = "Qwen/Qwen2.5-7B-Instruct"
-# Jika VRAM < 14GB, pakai 3B:
-# MODEL_ID = "Qwen/Qwen2.5-3B-Instruct"
+MODEL_ID = "teknium/OpenHermes-2.5-Mistral-7B"
+# Jika VRAM < 14GB, pakai model Mistral yang lebih kecil / quantized lebih agresif
 
 # ── Imports (setelah pip install) ─────────────────────────────────────────────
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig, TrainingArguments

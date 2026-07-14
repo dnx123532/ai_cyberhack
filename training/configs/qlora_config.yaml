@@ -1,5 +1,5 @@
 model:
-  base_model    : "Qwen/Qwen2.5-7B-Instruct"
+  base_model    : "teknium/OpenHermes-2.5-Mistral-7B"
   quantization  : "4bit"
   dtype         : "fp16"
   attn_impl     : "eager"
