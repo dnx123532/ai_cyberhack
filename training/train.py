@@ -12,7 +12,14 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 # Use the accelerated Rust downloader (chunked, resumable, real timeouts) so a
 # stalled connection to the HF CDN errors/retries instead of hanging forever.
-os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")
+# Only enable it if the package is actually installed (`pip install hf_transfer`) —
+# transformers raises hard if the env var is set but the package is missing.
+try:
+    import hf_transfer  # noqa: F401
+    os.environ.setdefault("HF_HUB_ENABLE_HF_TRANSFER", "1")
+except ImportError:
+    print("  [warn] hf_transfer not installed, falling back to default downloader "
+          "(`pip install hf_transfer` for faster/more resilient downloads)")
 os.environ.setdefault("HF_HUB_ETAG_TIMEOUT", "30")
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
