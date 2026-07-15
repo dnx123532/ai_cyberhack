@@ -30,6 +30,10 @@ GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
+
 import subprocess
 
 WSL_DISTRO = "kali-linux"
@@ -131,6 +135,107 @@ def call_groq(messages, tools=None):
     return resp.json()
 
 
+# ── Gemini fallback (Groq primary -> Gemini fallback, per original NEXUS design) ──
+
+def _to_gemini_schema(openai_params: dict) -> dict:
+    """OpenAI JSON-schema param dict -> Gemini's schema (same shape, upper-case types)."""
+    props = {k: {"type": v["type"].upper(), "description": v.get("description", "")}
+             for k, v in openai_params["properties"].items()}
+    return {"type": "OBJECT", "properties": props, "required": openai_params.get("required", [])}
+
+
+GEMINI_TOOLS_SCHEMA = [{
+    "functionDeclarations": [
+        {"name": t["function"]["name"], "description": t["function"]["description"],
+         "parameters": _to_gemini_schema(t["function"]["parameters"])}
+        for t in TOOLS_SCHEMA
+    ]
+}]
+
+
+def _find_tool_call_name(messages, tool_call_id):
+    for m in messages:
+        for tc in (m.get("tool_calls") or []):
+            if tc["id"] == tool_call_id:
+                return tc["function"]["name"]
+    return "unknown_function"
+
+
+def _messages_to_gemini(messages):
+    system_text, contents = "", []
+    for m in messages:
+        role = m["role"]
+        if role == "system":
+            system_text = m["content"]
+        elif role == "user":
+            contents.append({"role": "user", "parts": [{"text": m["content"]}]})
+        elif role == "assistant":
+            if m.get("tool_calls"):
+                parts = [{"functionCall": {"name": tc["function"]["name"], "args": json.loads(tc["function"]["arguments"])}}
+                         for tc in m["tool_calls"]]
+            else:
+                parts = [{"text": m.get("content") or ""}]
+            contents.append({"role": "model", "parts": parts})
+        elif role == "tool":
+            fn_name = _find_tool_call_name(messages, m["tool_call_id"])
+            contents.append({"role": "user", "parts": [
+                {"functionResponse": {"name": fn_name, "response": json.loads(m["content"])}}
+            ]})
+    return system_text, contents
+
+
+def call_gemini(messages, tools=None):
+    if not GEMINI_API_KEY:
+        raise RuntimeError("GEMINI_API_KEY belum di-set. Taro di .env: GEMINI_API_KEY=AIza...")
+    system_text, contents = _messages_to_gemini(messages)
+    body = {"contents": contents}
+    if system_text:
+        body["systemInstruction"] = {"parts": [{"text": system_text}]}
+    if tools:
+        body["tools"] = GEMINI_TOOLS_SCHEMA
+    resp = requests.post(f"{GEMINI_URL}?key={GEMINI_API_KEY}", json=body, timeout=60)
+    resp.raise_for_status()
+    data = resp.json()
+
+    parts = data["candidates"][0]["content"]["parts"]
+    text_parts = [p["text"] for p in parts if "text" in p]
+    fn_parts = [p["functionCall"] for p in parts if "functionCall" in p]
+
+    tool_calls = None
+    if fn_parts:
+        tool_calls = [
+            {"id": f"call_{i}", "type": "function",
+             "function": {"name": fc["name"], "arguments": json.dumps(fc.get("args", {}))}}
+            for i, fc in enumerate(fn_parts)
+        ]
+    # Normalize to the same shape call_groq() returns so ask_nexus() doesn't care which provider answered.
+    return {"choices": [{"message": {"role": "assistant", "content": " ".join(text_parts) or None, "tool_calls": tool_calls}}]}
+
+
+def call_llm(messages, tools=None):
+    """Groq primary, Gemini fallback on rate limit / missing key — mirrors the
+    original NEXUS provider chain (Groq -> Gemini -> Ollama)."""
+    if GROQ_API_KEY:
+        try:
+            return call_groq(messages, tools)
+        except requests.exceptions.HTTPError as e:
+            if e.response is not None and e.response.status_code == 429 and GEMINI_API_KEY:
+                print(f"{DIM}  (Groq rate-limited, fallback ke Gemini...){RESET}")
+                try:
+                    return call_gemini(messages, tools)
+                except requests.exceptions.HTTPError as e2:
+                    if e2.response is not None and e2.response.status_code == 429:
+                        raise RuntimeError(
+                            "Groq DAN Gemini dua-duanya kena rate limit / quota habis sekarang. "
+                            "Tunggu beberapa saat, atau cek quota/billing di console masing-masing provider."
+                        ) from e2
+                    raise
+            raise
+    if GEMINI_API_KEY:
+        return call_gemini(messages, tools)
+    raise RuntimeError("Gak ada API key yang valid — set GROQ_API_KEY atau GEMINI_API_KEY di .env")
+
+
 def execute_registered_tool(registry: ToolRegistry, tool_name: str, args: str):
     entry = registry.resolve(tool_name)
     if entry is None:
@@ -199,7 +304,7 @@ def ask_nexus(user_message: str, registry: ToolRegistry | None = None, messages:
 
     custom_script_attempt = 0
     for round_num in range(MAX_TOOL_ROUNDS):
-        response = call_groq(messages, tools=TOOLS_SCHEMA)
+        response = call_llm(messages, tools=TOOLS_SCHEMA)
         msg = response["choices"][0]["message"]
         messages.append(msg)
 
@@ -234,7 +339,7 @@ def ask_nexus(user_message: str, registry: ToolRegistry | None = None, messages:
             })
 
     # hit the round cap without a final answer — ask once more without tools to force a wrap-up
-    response = call_groq(messages)
+    response = call_llm(messages)
     final = response["choices"][0]["message"]
     messages.append(final)
     return final["content"], messages
@@ -269,7 +374,11 @@ def format_answer(text: str) -> str:
 
 def _run_one(reg, prompt: str):
     print(f"\n{'='*70}\n❓ {prompt}\n{'='*70}")
-    answer, _ = ask_nexus(prompt, reg)
+    try:
+        answer, _ = ask_nexus(prompt, reg)
+    except RuntimeError as e:
+        print(f"\n⚠️  {e}")
+        return
     print(f"\n🤖 {format_answer(answer)}")
 
 
@@ -293,5 +402,9 @@ if __name__ == "__main__":
                 continue
             if prompt.lower() in ("exit", "quit", "q"):
                 break
-            answer, convo = ask_nexus(prompt, reg, messages=convo)
+            try:
+                answer, convo = ask_nexus(prompt, reg, messages=convo)
+            except RuntimeError as e:
+                print(f"\n⚠️  {e}\n")
+                continue
             print(f"\n🤖 {format_answer(answer)}\n")
