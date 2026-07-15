@@ -179,13 +179,23 @@ def _status(text: str):
     print(f"{DIM}{CYAN}  ⚙ {text}{RESET}")
 
 
-def ask_nexus(user_message: str, registry: ToolRegistry | None = None, verbose: bool = True):
+def new_conversation(registry: ToolRegistry | None = None):
+    """Start a fresh message history (with the system prompt). Pass the
+    returned list back into ask_nexus(..., messages=...) on every subsequent
+    turn so the agent actually remembers the conversation."""
     registry = registry or ToolRegistry()
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(registry_listing=build_registry_listing(registry))
-    messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_message},
-    ]
+    return [{"role": "system", "content": system_prompt}]
+
+
+def ask_nexus(user_message: str, registry: ToolRegistry | None = None, messages: list | None = None,
+              verbose: bool = True):
+    """Returns (answer, messages) — pass `messages` back in on the next call
+    to continue the SAME conversation instead of starting fresh each time."""
+    registry = registry or ToolRegistry()
+    if messages is None:
+        messages = new_conversation(registry)
+    messages.append({"role": "user", "content": user_message})
 
     custom_script_attempt = 0
     for round_num in range(MAX_TOOL_ROUNDS):
@@ -195,7 +205,7 @@ def ask_nexus(user_message: str, registry: ToolRegistry | None = None, verbose: 
 
         tool_calls = msg.get("tool_calls") or []
         if not tool_calls:
-            return msg.get("content", "")
+            return msg.get("content", ""), messages
 
         for tc in tool_calls:
             fn_name = tc["function"]["name"]
@@ -225,7 +235,9 @@ def ask_nexus(user_message: str, registry: ToolRegistry | None = None, verbose: 
 
     # hit the round cap without a final answer — ask once more without tools to force a wrap-up
     response = call_groq(messages)
-    return response["choices"][0]["message"]["content"]
+    final = response["choices"][0]["message"]
+    messages.append(final)
+    return final["content"], messages
 
 
 _STAGE_MARKERS = ("[Berpikir]", "[Tool]", "[Aksi]", "[Observasi]", "[Kesimpulan]")
@@ -257,7 +269,7 @@ def format_answer(text: str) -> str:
 
 def _run_one(reg, prompt: str):
     print(f"\n{'='*70}\n❓ {prompt}\n{'='*70}")
-    answer = ask_nexus(prompt, reg)
+    answer, _ = ask_nexus(prompt, reg)
     print(f"\n🤖 {format_answer(answer)}")
 
 
@@ -268,8 +280,10 @@ if __name__ == "__main__":
         # one-shot: python nexus_agent.py "lakukan recon pada https://..."
         _run_one(reg, " ".join(sys.argv[1:]))
     else:
-        # interactive: keep asking until you type exit/quit
+        # interactive: keep asking until you type exit/quit — history persists
+        # across turns (previous questions/tool results stay in context)
         print("NEXUS Agent (Groq) — ketik pertanyaan/perintah, 'exit' buat keluar\n")
+        convo = new_conversation(reg)
         while True:
             try:
                 prompt = input("❓ ").strip()
@@ -279,5 +293,5 @@ if __name__ == "__main__":
                 continue
             if prompt.lower() in ("exit", "quit", "q"):
                 break
-            answer = ask_nexus(prompt, reg)
+            answer, convo = ask_nexus(prompt, reg, messages=convo)
             print(f"\n🤖 {format_answer(answer)}\n")
