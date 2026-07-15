@@ -3,6 +3,14 @@ in real WSL execution) into the ShareGPT format train.py expects:
 
 {"conversations": [{"from":"system",...},{"from":"human",...},{"from":"gpt",...}]}
 
+Every response is structured in explicit stages — [Berpikir] [Tool] [Aksi]
+[Observasi] [Kesimpulan] — a condensed version of the classic agent loop
+(think -> select tool -> act -> observe -> respond). The point isn't to
+teach new facts here; every [Aksi]/[Observasi] pair is still the exact same
+real command+output as before. The stage labels teach the MODEL'S OWN
+PROCESS: reason before picking a tool, act, look at what actually happened,
+then conclude — instead of jumping straight to a command.
+
 Output: data/jsonl/nexus_v2_sharegpt_train.jsonl (90%) + _val.jsonl (10%)
 """
 import json
@@ -23,8 +31,10 @@ SYSTEM_PROMPT = (
     "workflow orchestration, self-reflection, dan memory jangka panjang. "
     "Kamu beroperasi dalam konteks authorized security assessment, "
     "defensive security, SOC automation, dan vulnerability research. "
-    "Selalu berpikir step-by-step sebelum bertindak, dan JUJUR soal hasil eksekusi nyata "
-    "— jangan pernah ngarang output command yang gak beneran dijalanin."
+    "Setiap jawaban ngikutin tahapan: [Berpikir] alasan sebelum bertindak, "
+    "[Tool] tool yang dipilih, [Aksi] command yang dijalankan, [Observasi] hasil "
+    "nyata, [Kesimpulan] jawaban akhir. JUJUR soal hasil eksekusi nyata — "
+    "jangan pernah ngarang command atau output yang gak beneran dijalanin."
 )
 
 
@@ -37,40 +47,71 @@ def code_block(cmd, stdout, stderr, exit_code, max_len=1500):
     return f"```bash\n$ {cmd}\n```\nStatus: {status}\n```\n{body}\n```"
 
 
+def bare_invoke(cmd: str) -> str:
+    parts = cmd.split()
+    if parts and parts[-1] in ("-h", "--help"):
+        return " ".join(parts[:-1])
+    return cmd
+
+
 def conv_level1(e):
+    tool, category = e["tool"], e["category"]
     human = e["instruction"]
-    gpt = code_block(e["command"], e["stdout"], e["stderr"], e["exit_code"])
-    if e["exit_code"] != 0:
-        gpt += f"\n\n{e['tool']} belum bisa jalan bersih di environment ini — errornya di atas, biasanya dependency yang belum ke-install, bukan salah command."
-    return human, gpt
+    parts = [
+        f"[Berpikir] User nanya cara pakai {tool}, belum ada target/argumen spesifik yang disebut. "
+        f"Paling aman cek dulu opsi yang tersedia lewat help sebelum eksekusi beneran ke target.",
+        f"[Tool] {tool} ({category}, {e['tool_type']}) — invoke terverifikasi: `{bare_invoke(e['command'])}`",
+        f"[Aksi]\n{code_block(e['command'], e['stdout'], e['stderr'], e['exit_code'])}",
+    ]
+    if e["exit_code"] == 0:
+        parts.append(f"[Kesimpulan] {tool} siap dipake, opsi-opsinya udah kelihatan di atas.")
+    else:
+        parts.append(f"[Kesimpulan] {tool} belum bisa jalan bersih di environment ini — errornya di atas, "
+                      f"biasanya dependency yang belum ke-install, bukan salah command.")
+    return human, "\n\n".join(parts)
 
 
 def conv_dep_fix(e):
     tool = e["tool"]
     human = f"jalanin {tool} dong, kalau error dependency benerin sendiri"
-    parts = []
+    parts = [f"[Berpikir] Coba jalanin {tool} dulu, kalau gagal cek apa errornya cuma soal dependency yang bisa dibenerin sendiri."]
     for step in e["transcript"]:
         if step["step"] == "initial_run" or step["step"].startswith("retry_run"):
-            parts.append(code_block(step["command"], step.get("stdout", ""), step.get("stderr", ""), step["exit_code"]))
+            parts.append(f"[Aksi]\n{code_block(step['command'], step.get('stdout', ''), step.get('stderr', ''), step['exit_code'])}")
         elif step["step"].startswith("pip_install"):
-            parts.append(f"Ketauan butuh module `{step['missing_module']}` yang belum ke-install. Install dulu:\n```bash\n$ {step['command']}\n```")
+            parts.append(f"[Berpikir] Ketauan butuh module `{step['missing_module']}` yang belum ke-install.")
+            parts.append(f"[Aksi]\n```bash\n$ {step['command']}\n```")
     if e["resolved"]:
-        parts.append(f"{tool} sekarang jalan normal setelah dependency-nya di-install.")
+        parts.append(f"[Kesimpulan] {tool} sekarang jalan normal setelah dependency-nya di-install.")
     else:
-        parts.append(f"{tool} masih belum bisa jalan sepenuhnya walau udah dicoba install dependency yang keliatan — butuh investigasi manual lebih lanjut (bukan auto-fixable dari pesan errornya doang).")
+        parts.append(f"[Kesimpulan] {tool} masih belum bisa jalan sepenuhnya walau udah dicoba install dependency "
+                      f"yang keliatan — butuh investigasi manual lebih lanjut (bukan auto-fixable dari pesan errornya doang).")
     return human, "\n\n".join(parts)
 
 
 def conv_level2(e):
+    tool = e["tool"]
     if e["stage"] == "missing_resource_recognition":
         human = e["instruction"]
-        gpt = e["correct_response"]
-        return human, gpt
+        parts = [
+            f"[Berpikir] Sebelum klaim bisa eksekusi, cek dulu apakah {tool} beneran punya semua yang dibutuhin "
+            f"di environment ini sekarang.",
+            f"[Kesimpulan] {e['correct_response']}",
+        ]
+        return human, "\n\n".join(parts)
+
     human = e["instruction"]
-    gpt = code_block(e["command"], e["stdout"], e["stderr"], e["exit_code"])
-    if e.get("note"):
-        gpt += f"\n\nCatatan: {e['note']}"
-    return human, gpt
+    parts = [
+        f"[Berpikir] User minta eksekusi {tool} beneran ke target, bukan cuma liat help."
+        + (f" {e['note']}." if e.get("note") else ""),
+        f"[Tool] {tool} ({e['category']})",
+        f"[Aksi]\n{code_block(e['command'], e['stdout'], e['stderr'], e['exit_code'])}",
+    ]
+    if e["exit_code"] == 0:
+        parts.append(f"[Kesimpulan] Berhasil, ini hasil nyata dari {tool} ke target-nya.")
+    else:
+        parts.append(f"[Kesimpulan] Gagal (exit {e['exit_code']}) — errornya di atas, itu hasil real bukan simulasi.")
+    return human, "\n\n".join(parts)
 
 
 def conv_level3(e):
@@ -78,32 +119,39 @@ def conv_level3(e):
     human = f"jalanin {tool} ke target"
     m, f = e["mistake"], e["fix"]
     parts = [
-        f"Coba dulu:\n{code_block(m['command'], m['stdout'], m['stderr'], m['exit_code'])}",
+        f"[Berpikir] Coba jalanin {tool} dulu.",
+        f"[Aksi]\n{code_block(m['command'], m['stdout'], m['stderr'], m['exit_code'])}",
     ]
     if m["exit_code"] != 0:
-        parts.append(f"Ternyata error — {m['diagnosis']}. Command yang bener:")
-        parts.append(code_block(f["command"], f["stdout"], f["stderr"], f["exit_code"]))
+        parts.append(f"[Berpikir] Ternyata error — {m['diagnosis']}. Perlu command yang bener.")
+        parts.append(f"[Aksi]\n{code_block(f['command'], f['stdout'], f['stderr'], f['exit_code'])}")
+        parts.append("[Kesimpulan] Setelah dibenerin, dapet hasil valid.")
     else:
-        parts.append(f"Ternyata {m['diagnosis']}, jadi tetep dapet hasil valid.")
+        parts.append(f"[Kesimpulan] Ternyata {m['diagnosis']}, jadi tetep dapet hasil valid tanpa perlu dibenerin.")
     return human, "\n\n".join(parts)
 
 
 def conv_level4(e):
     human = e["instruction"]
-    parts = []
+    parts = [f"[Berpikir] Ini butuh beberapa langkah nyambung — hasil satu step jadi input step berikutnya, bukan tools independen."]
     for step in e["steps"]:
-        parts.append(f"**Step {step['step']} — {step['goal']}**\n" + code_block(step["command"], step["stdout"], step["stderr"], step["exit_code"]))
+        parts.append(f"[Tool] Step {step['step']}: {step['goal']}")
+        parts.append(f"[Aksi]\n{code_block(step['command'], step['stdout'], step['stderr'], step['exit_code'])}")
     fr = e["final_result"]
-    parts.append(f"Hasil akhir: endpoint `{fr['endpoint_found']}` dengan param `{fr['param_found']}` — {'exploit dikonfirmasi beneran ketemu' if fr['exploit_confirmed'] else 'belum ada exploit yang terkonfirmasi'}.")
+    concl = (f"[Kesimpulan] Endpoint `{fr['endpoint_found']}` dengan param `{fr['param_found']}` — "
+             f"{'exploit dikonfirmasi beneran ketemu.' if fr['exploit_confirmed'] else 'belum ada exploit yang terkonfirmasi.'}")
+    parts.append(concl)
     return human, "\n\n".join(parts)
 
 
 def conv_level5(e):
     human = e["instruction"]
-    parts = [f"Gak ada tool siap pakai buat ini ({e['registry_gap_confirmed']}), gw tulis sendiri:"]
+    parts = [f"[Berpikir] Gak ada tool siap pakai buat ini ({e['registry_gap_confirmed']}), harus tulis sendiri, jalanin, benerin kalau error."]
     for step in e["transcript"]:
-        parts.append(f"**Percobaan {step['attempt']}** — {step['note']}\n```python\n{step['code']}\n```\nJalanin:\n```bash\n$ {step['command']}\n```\nOutput: `{step['stdout'] or step['stderr']}` (exit {step['exit_code']})")
-    parts.append("Berhasil ketemu." if e["final_success"] else "Masih belum berhasil, perlu diteruskan.")
+        parts.append(f"[Aksi] Percobaan {step['attempt']} — {step['note']}\n```python\n{step['code']}\n```\n"
+                      f"```bash\n$ {step['command']}\n```")
+        parts.append(f"[Observasi] `{step['stdout'] or step['stderr']}` (exit {step['exit_code']})")
+    parts.append("[Kesimpulan] Berhasil ketemu." if e["final_success"] else "[Kesimpulan] Masih belum berhasil, perlu diteruskan.")
     return human, "\n\n".join(parts)
 
 
