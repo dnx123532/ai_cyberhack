@@ -26,10 +26,13 @@ memory/vector_db/
 # ── Analyzer output (generated, bukan source) ────────────────────────────────
 analyzer/output/
 
-# ── Scratch output tools write into cwd during datagen real-execution runs ──
+# ── Scratch output tools write into cwd during datagen/agent real-execution runs ──
 datagen/127.0.0.1*/
 datagen/*.out
 scan/report/
+agent/*.vercel.app/
+agent/127.0.0.1*/
+agent/.nexus_scratch/
 
 # ── Secrets ───────────────────────────────────────────────────────────────────
 .env
