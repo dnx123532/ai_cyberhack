@@ -33,8 +33,9 @@ class NEXUSMonitorCallback(TrainerCallback):
 
     def on_epoch_end(self,args,state,control,**kw):
         epoch=int(state.epoch or 0)
-        avg=sum(self.train_losses[-100:])/min(len(self.train_losses),100) if self.train_losses else 0
-        print(f"\n  {'═'*50}\n  EPOCH {epoch} | avg_loss={avg:.4f} | best_eval={self.best_eval:.4f}")
+        avg_str = f"{sum(self.train_losses[-100:])/min(len(self.train_losses),100):.4f}" if self.train_losses else "N/A (belum ada log step)"
+        best_str = f"{self.best_eval:.4f}" if self.best_eval != float("inf") else "N/A"
+        print(f"\n  {'═'*50}\n  EPOCH {epoch} | avg_loss={avg_str} | best_eval={best_str}")
         self._backup(args.output_dir,epoch); print(f"  {'═'*50}\n")
 
     def _check(self,train,ev,step):
