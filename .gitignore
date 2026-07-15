@@ -26,6 +26,11 @@ memory/vector_db/
 # ── Analyzer output (generated, bukan source) ────────────────────────────────
 analyzer/output/
 
+# ── Scratch output tools write into cwd during datagen real-execution runs ──
+datagen/127.0.0.1*/
+datagen/*.out
+scan/report/
+
 # ── Secrets ───────────────────────────────────────────────────────────────────
 .env
 *.tmp
