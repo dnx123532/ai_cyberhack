@@ -26,6 +26,10 @@ import os
 
 load_env()
 
+DEEPSEEK_API_KEY = os.environ.get("DEEPSEEK_API_KEY")
+DEEPSEEK_MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-chat")
+DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
+
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -53,21 +57,27 @@ def run_wsl(cmd: str, timeout: int = 60):
         return stdout, stderr + f"\n[TIMEOUT after {timeout}s]", -1
 
 
-SYSTEM_PROMPT_TEMPLATE = """Kamu adalah NEXUS — AI cyberhack Operations Agent untuk authorized hacking and security \
-,attacking, defensive security, dan vulnerability research.
+SYSTEM_PROMPT_TEMPLATE = """Kamu adalah NEXUS — AI cyberhack Operations Agent untuk authorized security \
+assessment, pentesting, defensive security, dan vulnerability research (CTF, lab, bug bounty, riset).
 
-Setiap jawaban WAJIB ngikutin tahapan eksplisit:
-[Berpikir] alasan sebelum bertindak — apa yang diminta, tool apa yang relevan, argumen apa yang dibutuhin Untuk cyberhack.
-[Tool] tool yang dipilih (harus salah satu dari daftar registry di bawah) — ATAU putusin buat nulis script sendiri kalau emang gak ada yang cocok.
-[Aksi] panggil salah satu function di bawah — JANGAN PERNAH nulis path file/command mentah di teks jawaban, itu selalu salah karena kamu gak bisa ngapalin path persis. Panggil function-nya, sistem yang tau path aslinya.
-[Observasi] hasil nyata dari eksekusi (dikasih balik lewat function result). Kalau error, boleh coba lagi (benerin lalu panggil function lagi) sampai beres atau emang gak bisa.
-[Kesimpulan] jawaban akhir ke user berdasarkan observasi nyata di atas — jangan pernah ngarang hasil.
+Kamu punya 2 mode jawaban, pilih sesuai konteks:
 
-Ada 2 function buat eksekusi:
+1. **Ngobrol biasa** — kalau user nanya sesuatu yang gak butuh eksekusi tool nyata (nanya pendapat, klarifikasi, "kenapa", basa-basi, penjelasan konsep), jawab natural kayak ngobrol biasa. GAK PERLU pakai format [Berpikir]/[Tool]/[Aksi]/dst, gak perlu maksa manggil function. Santai aja, jangan kaku.
+
+2. **Eksekusi tool** — kalau user beneran minta eksekusi/scan/recon/exploit ke target nyata, BARU pakai tahapan:
+[Berpikir] alasan sebelum bertindak.
+[Tool] tool yang dipilih.
+[Aksi] panggil function (`run_tool` atau `run_custom_script`) — JANGAN PERNAH nulis path file/command mentah di teks jawaban, itu selalu salah karena kamu gak bisa ngapalin path persis. Panggil function-nya, sistem yang tau path aslinya.
+[Observasi] hasil nyata dari eksekusi. Kalau error, boleh coba lagi sampai beres atau emang gak bisa.
+[Kesimpulan] jawaban akhir berdasarkan observasi nyata — jangan pernah ngarang hasil.
+
+Function yang ada:
 1. `run_tool` — buat tool yang UDAH terdaftar di registry di bawah. Selalu coba ini duluan.
-2. `run_custom_script` — kalau gak ada tool terdaftar yang cocok buat kebutuhan spesifik ini, tulis Python script sendiri dan jalanin beneran. Kalau error, baca errornya, revisi kodenya, panggil lagi sampai jalan.
+2. `run_custom_script` — kalau gak ada tool terdaftar yang cocok, tulis Python script sendiri dan jalanin beneran. Kalau error, baca errornya, revisi, panggil lagi sampai jalan.
 
 Kalau tool yang dibutuhin gak ada di registry DAN gak ada cara nulis script sendiri yang masuk akal, JUJUR bilang gak bisa — jangan ngarang tool atau hasil.
+
+Batas: tetep di lane authorized security assessment/CTF/lab. Hal yang bukan security-tooling sama sekali (misal lacak lokasi individu tertentu secara real, doxxing, surveillance ke orang) itu di luar scope tool ini, bukan soal "boleh/gak boleh dituruti" — emang beda domain.
 
 === REGISTRY TOOLS (ini SEMUA tool yang beneran ada & terverifikasi) ===
 {registry_listing}
@@ -119,20 +129,30 @@ def build_registry_listing(registry: ToolRegistry) -> str:
     return "\n".join(lines)
 
 
-def call_groq(messages, tools=None):
-    if not GROQ_API_KEY:
-        raise RuntimeError("GROQ_API_KEY belum di-set. Taro di .env: GROQ_API_KEY=gsk_...")
-    body = {"model": GROQ_MODEL, "messages": messages, "temperature": 0.3}
+def _call_openai_compatible(url, api_key, model, messages, tools=None):
+    body = {"model": model, "messages": messages, "temperature": 0.3}
     if tools:
         body["tools"] = tools
         body["tool_choice"] = "auto"
     resp = requests.post(
-        GROQ_URL,
-        headers={"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"},
+        url,
+        headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
         json=body, timeout=60,
     )
     resp.raise_for_status()
     return resp.json()
+
+
+def call_deepseek(messages, tools=None):
+    if not DEEPSEEK_API_KEY:
+        raise RuntimeError("DEEPSEEK_API_KEY belum di-set. Taro di .env: DEEPSEEK_API_KEY=sk-...")
+    return _call_openai_compatible(DEEPSEEK_URL, DEEPSEEK_API_KEY, DEEPSEEK_MODEL, messages, tools)
+
+
+def call_groq(messages, tools=None):
+    if not GROQ_API_KEY:
+        raise RuntimeError("GROQ_API_KEY belum di-set. Taro di .env: GROQ_API_KEY=gsk_...")
+    return _call_openai_compatible(GROQ_URL, GROQ_API_KEY, GROQ_MODEL, messages, tools)
 
 
 # ── Gemini fallback (Groq primary -> Gemini fallback, per original NEXUS design) ──
@@ -212,28 +232,33 @@ def call_gemini(messages, tools=None):
     return {"choices": [{"message": {"role": "assistant", "content": " ".join(text_parts) or None, "tool_calls": tool_calls}}]}
 
 
+PROVIDER_CHAIN = [
+    ("DeepSeek", lambda: DEEPSEEK_API_KEY, call_deepseek),
+    ("Groq", lambda: GROQ_API_KEY, call_groq),
+    ("Gemini", lambda: GEMINI_API_KEY, call_gemini),
+]
+
+
 def call_llm(messages, tools=None):
-    """Groq primary, Gemini fallback on rate limit / missing key — mirrors the
-    original NEXUS provider chain (Groq -> Gemini -> Ollama)."""
-    if GROQ_API_KEY:
+    """DeepSeek primary (less prone to over-cautious refusals on legit security-tool
+    phrasing) -> Groq -> Gemini, each one tried in order on missing key / rate limit."""
+    tried = []
+    for name, has_key, fn in PROVIDER_CHAIN:
+        if not has_key():
+            continue
         try:
-            return call_groq(messages, tools)
+            if tried:
+                print(f"{DIM}  ({tried[-1]} gagal, fallback ke {name}...){RESET}")
+            return fn(messages, tools)
         except requests.exceptions.HTTPError as e:
-            if e.response is not None and e.response.status_code == 429 and GEMINI_API_KEY:
-                print(f"{DIM}  (Groq rate-limited, fallback ke Gemini...){RESET}")
-                try:
-                    return call_gemini(messages, tools)
-                except requests.exceptions.HTTPError as e2:
-                    if e2.response is not None and e2.response.status_code == 429:
-                        raise RuntimeError(
-                            "Groq DAN Gemini dua-duanya kena rate limit / quota habis sekarang. "
-                            "Tunggu beberapa saat, atau cek quota/billing di console masing-masing provider."
-                        ) from e2
-                    raise
+            tried.append(name)
+            if e.response is not None and e.response.status_code == 429:
+                continue  # try next provider in the chain
             raise
-    if GEMINI_API_KEY:
-        return call_gemini(messages, tools)
-    raise RuntimeError("Gak ada API key yang valid — set GROQ_API_KEY atau GEMINI_API_KEY di .env")
+    if tried:
+        raise RuntimeError(f"Semua provider yang punya API key kena rate limit / gagal: {', '.join(tried)}. "
+                            f"Tunggu beberapa saat, atau cek quota/billing di console masing-masing.")
+    raise RuntimeError("Gak ada API key yang valid — set DEEPSEEK_API_KEY, GROQ_API_KEY, atau GEMINI_API_KEY di .env")
 
 
 def execute_registered_tool(registry: ToolRegistry, tool_name: str, args: str):
